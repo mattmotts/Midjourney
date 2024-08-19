@@ -1,3 +1,6 @@
+#source venv/bin/activate
+#python backend.py
+
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
@@ -24,7 +27,7 @@ class MockupApp:
         self.image_label.pack()
 
         # Load mockups from CSV
-        self.mockups_df = pd.read_csv("mockups.csv")
+        self.mockups_df = pd.read_csv("../../data/mockup819new.csv")
         for mockup in self.mockups_df['image_id'].tolist():
             self.mockup_listbox.insert(tk.END, mockup)
 

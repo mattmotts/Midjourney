@@ -1,8 +1,6 @@
-#source venv/bin/activate
-#python backend.py
-
+import os
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, ttk
 from PIL import Image, ImageTk
 import pandas as pd
 
@@ -10,21 +8,39 @@ class MockupApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Mockup Overlay Application")
+        self.root.geometry("400x600")
+        
+        style = ttk.Style()
+        style.configure('TButton', font=('Arial', 12))
+        style.configure('TLabel', font=('Arial', 10))
+        style.configure('TListbox', font=('Arial', 10))
 
-        # Listbox for mockup selection
-        self.mockup_listbox = tk.Listbox(root, selectmode=tk.MULTIPLE)
-        self.mockup_listbox.pack()
-
-        # Button to upload an image
-        self.upload_button = tk.Button(root, text="Upload Image", command=self.upload_image)
-        self.upload_button.pack()
-
-        # Button to overlay the image
-        self.overlay_button = tk.Button(root, text="Overlay Image", command=self.overlay_image)
-        self.overlay_button.pack()
-
-        self.image_label = tk.Label(root)
-        self.image_label.pack()
+        # Frame for mockup list
+        frame_mockup_list = ttk.Frame(root, padding="10")
+        frame_mockup_list.pack(fill=tk.BOTH, expand=True)
+        
+        ttk.Label(frame_mockup_list, text="Select Mockup(s):").pack(anchor=tk.W)
+        
+        self.mockup_listbox = tk.Listbox(frame_mockup_list, selectmode=tk.MULTIPLE, height=8)
+        self.mockup_listbox.pack(fill=tk.BOTH, expand=True)
+        
+        # Frame for image upload and overlay buttons
+        frame_buttons = ttk.Frame(root, padding="10")
+        frame_buttons.pack(fill=tk.BOTH, expand=True)
+        
+        self.upload_button = ttk.Button(frame_buttons, text="Upload Image", command=self.upload_image)
+        self.upload_button.pack(pady=5)
+        
+        self.overlay_button = ttk.Button(frame_buttons, text="Overlay Image", command=self.overlay_image)
+        self.overlay_button.pack(pady=5)
+        
+        # Frame for image preview
+        frame_preview = ttk.Frame(root, padding="10")
+        frame_preview.pack(fill=tk.BOTH, expand=True)
+        
+        ttk.Label(frame_preview, text="Image Preview:").pack(anchor=tk.W)
+        self.image_label = ttk.Label(frame_preview)
+        self.image_label.pack(fill=tk.BOTH, expand=True)
 
         # Load mockups from CSV
         self.mockups_df = pd.read_csv("../../data/mockup819new.csv")
@@ -32,9 +48,11 @@ class MockupApp:
             self.mockup_listbox.insert(tk.END, mockup)
 
         self.selected_image_path = None
+        self.save_directory = "/Users/matt/Pictures/Midjourney/Imagine/Downloads"  # Set your save directory here
 
     def upload_image(self):
-        self.selected_image_path = filedialog.askopenfilename()
+        initial_dir = "/Users/matt/Pictures/Midjourney/Imagine/Downloads"  # Set your initial directory here
+        self.selected_image_path = filedialog.askopenfilename(initialdir=initial_dir)
         if self.selected_image_path:
             img = Image.open(self.selected_image_path)
             img.thumbnail((200, 200))
@@ -66,10 +84,18 @@ class MockupApp:
         overlay_img = overlay_img.resize((int(width), int(height)))
 
         mockup_img.paste(overlay_img, (int(left), int(top)))
-        save_path = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG files", "*.png")])
-        if save_path:
-            mockup_img.save(save_path)
-            messagebox.showinfo("Success", f"Image saved as {save_path}")
+
+        # Extract prefix from overlay image filename
+        overlay_image_name = os.path.basename(image_path)
+        prefix = overlay_image_name.split('_')[0]
+
+        # Generate the new filename
+        new_filename = f"{prefix}_{mockup_name}"
+
+        # Save the image automatically to the set directory
+        save_path = os.path.join(self.save_directory, new_filename)
+        mockup_img.save(save_path)
+        messagebox.showinfo("Success", f"Image saved as {new_filename} in {self.save_directory}")
 
 if __name__ == "__main__":
     root = tk.Tk()

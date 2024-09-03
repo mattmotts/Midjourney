@@ -8,7 +8,7 @@ class MockupSelectionApp:
         self.root = root
         self.root.title("Mockup Selection")
         self.root.geometry("500x700")
-        self.next_step_callback = next_step_callback  # Callback to move to the next step
+        self.next_step_callback = next_step_callback
 
         frame_mockup_list = ttk.Frame(root, padding="10")
         frame_mockup_list.pack(fill=tk.BOTH, expand=True)
@@ -26,11 +26,8 @@ class MockupSelectionApp:
         self.image_label = ttk.Label(frame_preview)
         self.image_label.pack(fill=tk.BOTH, expand=True)
 
-        # Set the absolute path to the mockup_data.csv file
-        mockup_data_path = '/Users/matt/Documents/Coding/Midjourney/APP/mockup_data.csv'
-        
-        # Load the mockup data using the absolute path
-        self.mockups_df = pd.read_csv(mockup_data_path)
+        self.mockup_data_path = '/Users/matt/Documents/Coding/Midjourney/APP/mockup_data.csv'
+        self.mockups_df = pd.read_csv(self.mockup_data_path)
         self.mockup_paths = {}
 
         for mockup in self.mockups_df['image_id'].tolist():

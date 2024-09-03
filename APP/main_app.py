@@ -9,13 +9,9 @@ class MainApp:
         self.root = root
         self.root.title("Mockup Overlay Application")
         
-        # Use the absolute path to the mockup_data.csv file
         self.mockup_data_path = '/Users/matt/Documents/Coding/Midjourney/APP/mockup_data.csv'
-        
-        # Load the mockup data
         self.mockups_df = pd.read_csv(self.mockup_data_path)
         
-        # Start with the first step
         self.run_mockup_selection()
 
     def clear_window(self):
@@ -32,10 +28,7 @@ class MainApp:
 
     def run_perform_overlay(self, selected_mockups, image_path):
         self.clear_window()
-        PerformOverlayApp(selected_mockups, image_path)
-        tk.messagebox.showinfo("Done", "Overlay process completed!")
-        # Optionally, you can close the application after this step:
-        # self.root.quit()
+        PerformOverlayApp(self.root, selected_mockups, image_path, self.run_mockup_selection)
 
 if __name__ == "__main__":
     root = tk.Tk()

@@ -61,17 +61,28 @@ class MockupSelectionApp:
         button = self.mockup_buttons.get(mockup)
         if button:
             if selected:
-                # Apply a light blue border to the image using a hex color code
+                # Load the original image
                 original_img = Image.open(self.mockups_df[self.mockups_df['image_id'] == mockup]['image_path'].iloc[0])
-                bordered_img = ImageOps.expand(original_img, border=5, fill='#ADD8E6')  # Light blue hex code
+                
+                # Create a shadow effect by expanding the image with a black border
+                shadow = ImageOps.expand(original_img, border=25, fill='#000000')  # Black shadow
+                
+                # Add a light blue border on top of the shadow
+                bordered_img = ImageOps.expand(shadow, border=15, fill='#ADD8E6')  # Light blue border over shadow
+                
+                # Resize and convert to PhotoImage for Tkinter
                 bordered_img.thumbnail((150, 150))  # Adjust thumbnail size as needed
                 bordered_img = ImageTk.PhotoImage(bordered_img)
+                
+                # Update the button image
                 button.config(image=bordered_img)
                 button.image = bordered_img
             else:
                 # Revert to the original image
                 button.config(image=self.original_images[mockup])
                 button.image = self.original_images[mockup]
+
+
 
     def save_selection_and_proceed(self):
         if not self.selected_mockups:

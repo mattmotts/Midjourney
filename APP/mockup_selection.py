@@ -1,60 +1,84 @@
 import tkinter as tk
 from tkinter import ttk
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageOps
 import pandas as pd
 
 class MockupSelectionApp:
     def __init__(self, root, next_step_callback):
         self.root = root
         self.root.title("Mockup Selection")
-        self.root.geometry("500x700")
+        self.root.geometry("700x800")
         self.next_step_callback = next_step_callback
+
+        self.selected_mockups = set()  # Store selected mockups
 
         frame_mockup_list = ttk.Frame(root, padding="10")
         frame_mockup_list.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(frame_mockup_list, text="Select Mockup(s):").pack(anchor=tk.W)
-
-        self.mockup_listbox = tk.Listbox(frame_mockup_list, selectmode=tk.MULTIPLE, height=10)
-        self.mockup_listbox.pack(fill=tk.BOTH, expand=True)
-        self.mockup_listbox.bind("<<ListboxSelect>>", self.show_selected_mockup)
-
-        frame_preview = ttk.Frame(root, padding="10")
-        frame_preview.pack(fill=tk.BOTH, expand=True)
-
-        ttk.Label(frame_preview, text="Image Preview:").pack(anchor=tk.W)
-        self.image_label = ttk.Label(frame_preview)
-        self.image_label.pack(fill=tk.BOTH, expand=True)
+        self.mockup_buttons = {}  # To keep track of buttons and their state
+        self.original_images = {}  # To store original images
 
         self.mockup_data_path = '/Users/matt/Documents/Coding/Midjourney/APP/mockup_data.csv'
         self.mockups_df = pd.read_csv(self.mockup_data_path)
-        self.mockup_paths = {}
-
-        for mockup in self.mockups_df['image_id'].tolist():
-            self.mockup_listbox.insert(tk.END, mockup)
-            mockup_info = self.mockups_df[self.mockups_df['image_id'] == mockup].iloc[0]
-            self.mockup_paths[mockup] = mockup_info['image_path']
+        self.display_mockups(frame_mockup_list)
 
         ttk.Button(root, text="Next", command=self.save_selection_and_proceed).pack(pady=10)
 
-    def show_selected_mockup(self, event):
-        selected_mockup = self.mockup_listbox.get(tk.ACTIVE)
-        if selected_mockup in self.mockup_paths:
-            img = Image.open(self.mockup_paths[selected_mockup])
-            img.thumbnail((300, 300))
+    def display_mockups(self, frame):
+        row, col = 0, 0
+        for mockup in self.mockups_df['image_id'].tolist():
+            mockup_info = self.mockups_df[self.mockups_df['image_id'] == mockup].iloc[0]
+            mockup_path = mockup_info['image_path']
+            
+            img = Image.open(mockup_path)
+            img.thumbnail((150, 150))  # Adjust thumbnail size as needed
             img = ImageTk.PhotoImage(img)
-            self.image_label.config(image=img)
-            self.image_label.image = img
 
-    def get_selected_mockups(self):
-        return [self.mockup_listbox.get(i) for i in self.mockup_listbox.curselection()]
+            button = tk.Button(frame, image=img, command=lambda m=mockup: self.toggle_selection(m))
+            button.image = img  # Keep a reference to avoid garbage collection
+            button.grid(row=row, column=col, padx=10, pady=10)
+
+            label = tk.Label(frame, text=mockup)
+            label.grid(row=row + 1, column=col)
+
+            self.mockup_buttons[mockup] = button
+            self.original_images[mockup] = img  # Store original image
+
+            col += 1
+            if col >= 3:  # Adjust this value to determine the number of columns
+                col = 0
+                row += 2
+
+    def toggle_selection(self, mockup):
+        if mockup in self.selected_mockups:
+            self.selected_mockups.remove(mockup)
+            self.update_button_state(mockup, selected=False)
+        else:
+            self.selected_mockups.add(mockup)
+            self.update_button_state(mockup, selected=True)
+
+    def update_button_state(self, mockup, selected):
+        button = self.mockup_buttons.get(mockup)
+        if button:
+            if selected:
+                # Apply a light blue border to the image using a hex color code
+                original_img = Image.open(self.mockups_df[self.mockups_df['image_id'] == mockup]['image_path'].iloc[0])
+                bordered_img = ImageOps.expand(original_img, border=5, fill='#ADD8E6')  # Light blue hex code
+                bordered_img.thumbnail((150, 150))  # Adjust thumbnail size as needed
+                bordered_img = ImageTk.PhotoImage(bordered_img)
+                button.config(image=bordered_img)
+                button.image = bordered_img
+            else:
+                # Revert to the original image
+                button.config(image=self.original_images[mockup])
+                button.image = self.original_images[mockup]
 
     def save_selection_and_proceed(self):
-        selected_mockups = self.get_selected_mockups()
-        if not selected_mockups:
+        if not self.selected_mockups:
             tk.messagebox.showerror("Error", "No mockup selected")
             return
-        self.next_step_callback(selected_mockups)
+        print(f"Proceeding with: {self.selected_mockups}")
+        self.next_step_callback(self.selected_mockups)
 
 if __name__ == "__main__":
     root = tk.Tk()

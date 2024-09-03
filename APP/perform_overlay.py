@@ -31,37 +31,26 @@ class PerformOverlayApp:
 
             try:
                 mockup_img = Image.open(mockup_path)
-                print(f"Loaded mockup image: {mockup_path}")
             except Exception as e:
                 print(f"Failed to load image: {mockup_path} with error: {e}")
                 continue
 
-            try:
-                overlay_img = Image.open(self.image_path)
-                overlay_img = overlay_img.resize((int(width), int(height)))
-                print(f"Loaded and resized overlay image: {self.image_path}")
-            except Exception as e:
-                print(f"Failed to load or resize overlay image: {self.image_path} with error: {e}")
-                continue
+            overlay_img = Image.open(self.image_path)
+            overlay_img = overlay_img.resize((int(width), int(height)))
 
-            try:
-                mockup_img.paste(overlay_img, (int(left), int(top)))
-                print(f"Pasted overlay onto mockup at position ({left}, {top})")
-            except Exception as e:
-                print(f"Failed to paste overlay: {e}")
-                continue
+            mockup_img.paste(overlay_img, (int(left), int(top)))
 
             # Resize the image to fit within the specified max_width and max_height
+            mockup_img.thumbnail((max_width, max_height))
+
             try:
-                mockup_img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
                 img_preview = ImageTk.PhotoImage(mockup_img)
-                print(f"Created thumbnail for preview.")
             except Exception as e:
                 print(f"Failed to create ImageTk.PhotoImage: {e}")
                 continue
 
             preview_label = tk.Label(frame_preview, image=img_preview)
-            preview_label.image = img_preview  # Keep a reference to avoid garbage collection
+            preview_label.image = img_preview
             preview_label.pack(pady=10, padx=10)
 
         tk.Button(self.root, text="Save", command=self.save_overlay).pack(side=tk.LEFT, padx=10, pady=10)

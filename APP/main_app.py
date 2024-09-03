@@ -23,10 +23,16 @@ class MainApp:
         MockupSelectionApp(self.root, self.run_upload_overlay)
 
     def run_upload_overlay(self, selected_mockups):
+        if not selected_mockups:
+            tk.messagebox.showerror("Error", "No mockup selected")
+            return
         self.clear_window()
         UploadOverlayApp(self.root, selected_mockups, self.run_perform_overlay)
 
     def run_perform_overlay(self, selected_mockups, image_path):
+        if not image_path:
+            tk.messagebox.showerror("Error", "No image selected")
+            return
         self.clear_window()
         PerformOverlayApp(self.root, selected_mockups, image_path, self.run_mockup_selection)
 

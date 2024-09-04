@@ -1,4 +1,4 @@
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageOps
 import pandas as pd
 import os
 import tkinter as tk
@@ -18,8 +18,20 @@ class PerformOverlayApp:
     def preview_overlay(self):
         self.clear_window()
 
-        frame_preview = tk.Frame(self.root)
-        frame_preview.pack(fill=tk.BOTH, expand=True)
+        # Add canvas for scrolling
+        self.canvas = tk.Canvas(self.root)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Add vertical scrollbar
+        self.scrollbar = tk.Scrollbar(self.root, orient="vertical", command=self.canvas.yview)
+        self.scrollbar.pack(side=tk.RIGHT, fill="y")
+
+        # Configure the canvas
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.canvas.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+
+        self.frame = tk.Frame(self.canvas)
+        self.canvas.create_window((0, 0), window=self.frame, anchor="nw")
 
         max_width = 300
         max_height = 300
@@ -31,37 +43,26 @@ class PerformOverlayApp:
 
             try:
                 mockup_img = Image.open(mockup_path)
-                print(f"Loaded mockup image: {mockup_path}")
             except Exception as e:
                 print(f"Failed to load image: {mockup_path} with error: {e}")
                 continue
 
-            try:
-                overlay_img = Image.open(self.image_path)
-                overlay_img = overlay_img.resize((int(width), int(height)))
-                print(f"Loaded and resized overlay image: {self.image_path}")
-            except Exception as e:
-                print(f"Failed to load or resize overlay image: {self.image_path} with error: {e}")
-                continue
+            overlay_img = Image.open(self.image_path)
+            overlay_img = overlay_img.resize((int(width), int(height)))
 
-            try:
-                mockup_img.paste(overlay_img, (int(left), int(top)))
-                print(f"Pasted overlay onto mockup at position ({left}, {top})")
-            except Exception as e:
-                print(f"Failed to paste overlay: {e}")
-                continue
+            mockup_img.paste(overlay_img, (int(left), int(top)))
 
             # Resize the image to fit within the specified max_width and max_height
+            mockup_img.thumbnail((max_width, max_height))
+
             try:
-                mockup_img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
                 img_preview = ImageTk.PhotoImage(mockup_img)
-                print(f"Created thumbnail for preview.")
             except Exception as e:
                 print(f"Failed to create ImageTk.PhotoImage: {e}")
                 continue
 
-            preview_label = tk.Label(frame_preview, image=img_preview)
-            preview_label.image = img_preview  # Keep a reference to avoid garbage collection
+            preview_label = tk.Label(self.frame, image=img_preview)
+            preview_label.image = img_preview
             preview_label.pack(pady=10, padx=10)
 
         tk.Button(self.root, text="Save", command=self.save_overlay).pack(side=tk.LEFT, padx=10, pady=10)

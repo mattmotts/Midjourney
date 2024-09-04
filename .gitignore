@@ -163,3 +163,10 @@ cython_debug/
 
 # Folders
 data/ 
+app/images
+
+# Files
+app/mockup_data.csv
+
+.DS_Store
+

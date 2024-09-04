@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, Canvas, Frame
 from PIL import Image, ImageTk, ImageOps
 import pandas as pd
 
@@ -12,15 +12,25 @@ class MockupSelectionApp:
 
         self.selected_mockups = set()  # Store selected mockups
 
-        frame_mockup_list = ttk.Frame(root, padding="10")
-        frame_mockup_list.pack(fill=tk.BOTH, expand=True)
+        # Create a canvas and a scrollbar for scrolling
+        self.canvas = Canvas(root)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self.scrollbar = ttk.Scrollbar(root, orient="vertical", command=self.canvas.yview)
+        self.scrollbar.pack(side=tk.RIGHT, fill="y")
+
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.canvas.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+
+        self.frame_mockup_list = Frame(self.canvas)
+        self.canvas.create_window((0, 0), window=self.frame_mockup_list, anchor="nw")
 
         self.mockup_buttons = {}  # To keep track of buttons and their state
         self.original_images = {}  # To store original images
 
         self.mockup_data_path = '/Users/matt/Documents/Coding/Midjourney/APP/mockup_data.csv'
         self.mockups_df = pd.read_csv(self.mockup_data_path)
-        self.display_mockups(frame_mockup_list)
+        self.display_mockups(self.frame_mockup_list)
 
         ttk.Button(root, text="Next", command=self.save_selection_and_proceed).pack(pady=10)
 
@@ -81,8 +91,6 @@ class MockupSelectionApp:
                 # Revert to the original image
                 button.config(image=self.original_images[mockup])
                 button.image = self.original_images[mockup]
-
-
 
     def save_selection_and_proceed(self):
         if not self.selected_mockups:

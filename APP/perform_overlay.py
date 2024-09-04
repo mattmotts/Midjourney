@@ -1,4 +1,4 @@
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageOps
 import pandas as pd
 import os
 import tkinter as tk
@@ -18,8 +18,20 @@ class PerformOverlayApp:
     def preview_overlay(self):
         self.clear_window()
 
-        frame_preview = tk.Frame(self.root)
-        frame_preview.pack(fill=tk.BOTH, expand=True)
+        # Add canvas for scrolling
+        self.canvas = tk.Canvas(self.root)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Add vertical scrollbar
+        self.scrollbar = tk.Scrollbar(self.root, orient="vertical", command=self.canvas.yview)
+        self.scrollbar.pack(side=tk.RIGHT, fill="y")
+
+        # Configure the canvas
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.canvas.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+
+        self.frame = tk.Frame(self.canvas)
+        self.canvas.create_window((0, 0), window=self.frame, anchor="nw")
 
         max_width = 300
         max_height = 300
@@ -49,7 +61,7 @@ class PerformOverlayApp:
                 print(f"Failed to create ImageTk.PhotoImage: {e}")
                 continue
 
-            preview_label = tk.Label(frame_preview, image=img_preview)
+            preview_label = tk.Label(self.frame, image=img_preview)
             preview_label.image = img_preview
             preview_label.pack(pady=10, padx=10)
 

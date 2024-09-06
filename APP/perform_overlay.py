@@ -1,14 +1,14 @@
-from PIL import Image, ImageTk, ImageOps
-import pandas as pd
 import os
+import pandas as pd
+from PIL import Image, ImageTk
 import tkinter as tk
 
 class PerformOverlayApp:
-    def __init__(self, root, selected_mockups, image_path, return_to_home_callback):
+    def __init__(self, root, selected_mockups, image_path, return_to_home_callback, csv_file_path):
         self.root = root
         self.save_directory = "/Users/matt/Pictures/Midjourney/Imagine/Downloads"
-        self.mockup_data_path = '/Users/matt/Documents/Coding/Midjourney/APP/mockup_data.csv'
-        self.mockups_df = pd.read_csv(self.mockup_data_path)
+        self.csv_file_path = csv_file_path  # Use the uploaded CSV from step 1
+        self.mockups_df = pd.read_csv(self.csv_file_path)  # Load CSV data
         self.selected_mockups = selected_mockups
         self.image_path = image_path
         self.return_to_home_callback = return_to_home_callback
@@ -36,9 +36,21 @@ class PerformOverlayApp:
         max_width = 300
         max_height = 300
 
-        for mockup in self.selected_mockups:
-            mockup_info = self.mockups_df[self.mockups_df['image_id'] == mockup].iloc[0]
-            mockup_path = mockup_info['image_path']
+        for mockup_path in self.selected_mockups:
+            # Extract the filename from the full mockup path
+            mockup_filename = os.path.basename(mockup_path)
+            
+            # Find the corresponding entry in the CSV based on the filename
+            mockup_info = self.mockups_df[self.mockups_df['image_id'] == mockup_filename]
+            
+            # If no matching mockup is found, skip it
+            if mockup_info.empty:
+                print(f"No matching mockup found for: {mockup_filename}")
+                continue
+
+            mockup_info = mockup_info.iloc[0]  # Get the first matching row
+            
+            # Get the coordinates and size from the CSV
             top, left, height, width = mockup_info['top'], mockup_info['left'], mockup_info['height'], mockup_info['width']
 
             try:
@@ -65,13 +77,23 @@ class PerformOverlayApp:
             preview_label.image = img_preview
             preview_label.pack(pady=10, padx=10)
 
+        # Save button to save the overlay image
         tk.Button(self.root, text="Save", command=self.save_overlay).pack(side=tk.LEFT, padx=10, pady=10)
-        tk.Button(self.root, text="Cancel", command=self.return_to_home_callback).pack(side=tk.RIGHT, padx=10, pady=10)
+
+        # Go Back button to return to the previous step
+        tk.Button(self.root, text="Go Back", command=self.return_to_home_callback).pack(side=tk.RIGHT, padx=10, pady=10)
 
     def save_overlay(self):
-        for mockup in self.selected_mockups:
-            mockup_info = self.mockups_df[self.mockups_df['image_id'] == mockup].iloc[0]
-            mockup_path = mockup_info['image_path']
+        for mockup_path in self.selected_mockups:
+            mockup_filename = os.path.basename(mockup_path)
+            
+            mockup_info = self.mockups_df[self.mockups_df['image_id'] == mockup_filename]
+            
+            if mockup_info.empty:
+                print(f"No matching mockup found for: {mockup_filename}")
+                continue
+
+            mockup_info = mockup_info.iloc[0]
             top, left, height, width = mockup_info['top'], mockup_info['left'], mockup_info['height'], mockup_info['width']
 
             mockup_img = Image.open(mockup_path)
@@ -82,7 +104,7 @@ class PerformOverlayApp:
 
             overlay_image_name = os.path.basename(self.image_path)
             prefix = overlay_image_name.split('_')[0]
-            new_filename = f"{prefix}_{mockup}.png"
+            new_filename = f"{prefix}_{mockup_filename}"
             save_path = os.path.join(self.save_directory, new_filename)
             mockup_img.save(save_path)
             print(f"Image saved as {new_filename} in {self.save_directory}")
@@ -93,8 +115,3 @@ class PerformOverlayApp:
     def clear_window(self):
         for widget in self.root.winfo_children():
             widget.destroy()
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = PerformOverlayApp(root, ["mockup1", "mockup2"], "path/to/image.png", lambda: print("Return to home"))
-    root.mainloop()

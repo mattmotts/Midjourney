@@ -3,19 +3,21 @@ from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 
 class UploadOverlayApp:
-    def __init__(self, root, selected_mockups, next_step_callback):
+    def __init__(self, root, selected_mockups, next_step_callback, go_back_callback):
         self.root = root
         self.selected_mockups = selected_mockups
         self.next_step_callback = next_step_callback
+        self.go_back_callback = go_back_callback
         self.selected_image_path = None
 
         self.setup_ui()
 
     def setup_ui(self):
-        self.clear_window()
+        self.clear_window()  # Clear the window before displaying new content
 
         tk.Button(self.root, text="Upload Image", command=self.upload_image).pack(pady=20)
         tk.Button(self.root, text="Next", command=self.on_next).pack(pady=10)
+        tk.Button(self.root, text="Go Back", command=self.go_back_callback).pack(pady=10)
 
     def upload_image(self):
         self.selected_image_path = filedialog.askopenfilename(
@@ -41,7 +43,6 @@ class UploadOverlayApp:
         if not self.selected_image_path:
             messagebox.showerror("Error", "No image selected")
             return
-
         # Proceed to the next step (perform_overlay)
         self.next_step_callback(self.selected_mockups, self.selected_image_path)
 
@@ -51,5 +52,5 @@ class UploadOverlayApp:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = UploadOverlayApp(root, ["mockup1", "mockup2"], lambda x, y: print(f"Selected mockups: {x}, Image: {y}"))
+    app = UploadOverlayApp(root, ["mockup1", "mockup2"], lambda x, y: print(f"Selected mockups: {x}, Image: {y}"), lambda: print("Go back"))
     root.mainloop()

@@ -10,7 +10,8 @@ class MainApp:
         self.root.title("Mockup Overlay Application")
         self.csv_file_path = None
         self.mockup_directory = None
-        self.selected_mockups = None  # Keep track of selected mockups for back navigation
+        self.selected_mockups = None  # Track selected mockups for back navigation
+        self.image_path = None  # Track the uploaded overlay image for back navigation
 
         self.run_csv_load()
 
@@ -44,14 +45,16 @@ class MainApp:
 
     # Step 4: Perform Overlay
     def run_perform_overlay(self, selected_mockups=None, image_path=None):
-        if not selected_mockups:
-            selected_mockups = self.selected_mockups  # Retrieve selected mockups for this step
-        if not image_path:
+        if selected_mockups:
+            self.selected_mockups = selected_mockups  # Store selected mockups if provided
+        if image_path:
+            self.image_path = image_path  # Store image path if provided
+        if not self.image_path:
             tk.messagebox.showerror("Error", "No image selected")
             return
         self.clear_window()
         self.root.title("Overlay Selection")
-        PerformOverlayApp(self.root, selected_mockups, image_path, self.csv_file_path, self.run_upload_overlay, self.run_mockup_load)
+        PerformOverlayApp(self.root, self.selected_mockups, self.image_path, self.csv_file_path, self.run_upload_overlay, self.run_mockup_load)
 
 if __name__ == "__main__":
     root = tk.Tk()

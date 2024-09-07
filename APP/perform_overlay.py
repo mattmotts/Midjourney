@@ -79,7 +79,7 @@ class PerformOverlayApp:
         tk.Button(self.root, text="Save", command=self.save_overlay).pack(side=tk.LEFT, padx=10, pady=10)
 
         # Go Back button to return to the upload overlay stage
-        tk.Button(self.root, text="Go Back", command=lambda: self.return_to_home_callback(self.selected_mockups)).pack(side=tk.RIGHT, padx=10, pady=10)
+        tk.Button(self.root, text="Go Back", command=lambda: self.return_to_overlay_callback(self.selected_mockups)).pack(side=tk.RIGHT, padx=10, pady=10)
 
     def save_overlay(self):
         for mockup in self.selected_mockups:
@@ -117,8 +117,3 @@ class PerformOverlayApp:
     def clear_window(self):
         for widget in self.root.winfo_children():
             widget.destroy()
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = PerformOverlayApp(root, ["mockup1", "mockup2"], "path/to/image.png", "path/to/csv.csv", lambda: print("Return to overlay"), lambda: print("Return to mockup selection"))
-    root.mainloop()

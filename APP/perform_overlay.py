@@ -79,7 +79,7 @@ class PerformOverlayApp:
         tk.Button(self.root, text="Save", command=self.save_overlay).pack(side=tk.LEFT, padx=10, pady=10)
 
         # Go Back button to return to the upload overlay stage
-        tk.Button(self.root, text="Go Back", command=self.return_to_overlay_callback).pack(side=tk.RIGHT, padx=10, pady=10)
+        tk.Button(self.root, text="Go Back", command=lambda: self.return_to_home_callback(self.selected_mockups)).pack(side=tk.RIGHT, padx=10, pady=10)
 
     def save_overlay(self):
         for mockup in self.selected_mockups:

@@ -48,6 +48,10 @@ class UploadOverlayApp:
                 img.thumbnail((200, 200))  # Resizing the preview image
                 img = ImageTk.PhotoImage(img)
 
+                # Clear any existing preview
+                if hasattr(self, 'preview_label'):
+                    self.preview_label.destroy()
+
                 # Display the selected image preview
                 self.preview_label = tk.Label(self.root, image=img)
                 self.preview_label.image = img  # Keep a reference to avoid garbage collection

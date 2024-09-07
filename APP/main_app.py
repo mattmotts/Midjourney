@@ -10,6 +10,7 @@ class MainApp:
         self.root.title("Mockup Overlay Application")
         self.csv_file_path = None
         self.mockup_directory = None
+        self.selected_mockups = None  # Keep track of selected mockups for back navigation
 
         self.run_csv_load()
 
@@ -24,8 +25,9 @@ class MainApp:
         CSVLoadApp(self.root, self.run_mockup_load)
 
     # Step 2: Mockup Load
-    def run_mockup_load(self, csv_file_path):
-        self.csv_file_path = csv_file_path  # Store the CSV file path
+    def run_mockup_load(self, csv_file_path=None):
+        if csv_file_path:
+            self.csv_file_path = csv_file_path  # Store the CSV file path if provided
         self.clear_window()
         self.root.title("Mockup Selection")
         MockupSelectionApp(self.root, self.run_upload_overlay, self.run_csv_load)
@@ -35,19 +37,21 @@ class MainApp:
         if not selected_mockups:
             tk.messagebox.showerror("Error", "No mockup selected")
             return
+        self.selected_mockups = selected_mockups  # Store selected mockups for back navigation
         self.clear_window()
         self.root.title("Upload Overlay")
         UploadOverlayApp(self.root, selected_mockups, self.run_perform_overlay, self.run_mockup_load)
 
     # Step 4: Perform Overlay
-    def run_perform_overlay(self, selected_mockups, image_path):
+    def run_perform_overlay(self, selected_mockups=None, image_path=None):
+        if not selected_mockups:
+            selected_mockups = self.selected_mockups  # Retrieve selected mockups for this step
         if not image_path:
             tk.messagebox.showerror("Error", "No image selected")
             return
         self.clear_window()
         self.root.title("Overlay Selection")
-        # Pass the CSV file path to ensure the correct data is used
-        PerformOverlayApp(self.root, selected_mockups, image_path, self.csv_file_path, self.run_mockup_load)
+        PerformOverlayApp(self.root, selected_mockups, image_path, self.csv_file_path, self.run_upload_overlay, self.run_mockup_load)
 
 if __name__ == "__main__":
     root = tk.Tk()
